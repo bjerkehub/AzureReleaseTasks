@@ -1,0 +1,53 @@
+{
+    "manifestVersion": 1,
+    "id": "api-management-releasetask-automation",
+    "name": "Azure API Management Automation Tools",
+    "version": "1.0.15",
+    "publisher": "jbjerke85",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],    
+    "description": "Tools for adding Azure API Management Artifacts.",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "icons": {
+        "default": "images/extension-icon.png"        
+    },
+    "files": [
+        {
+            "path": "createorupdateapi"
+        },
+        {
+            "path": "createorupdateproduct"
+        },
+        {
+            "path": "images",
+            "addressable": true
+        }
+    ],
+    "contributions": [
+        {
+            "id": "createorupdateproduct",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "createorupdateproduct"
+            }
+        },
+        {
+            "id": "createorupdateapi",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "createorupdateapi"
+            }
+        }
+    ]
+}

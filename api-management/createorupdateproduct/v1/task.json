@@ -1,0 +1,188 @@
+{
+    "id": "9049c5b6-8fab-48fe-b432-14930d67b8ea",
+    "name": "createorupdateproduct",
+    "friendlyName": "API Management - Create or update product - version 1.0.4",
+    "description": "API Management - Create or update product - version 1.0.4",
+    "author": "DevOps Team - Joachim Bjerke",
+    "helpMarkDown": "API Management - Create or update product - version 1.0.4",
+    "category": "Utility",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "demands": [],
+    "version": {
+        "Major": "1",
+        "Minor": "0",
+        "Patch": "4"
+    },
+    "minimumAgentVersion": "1.95.0",
+    "instanceNameFormat": "API Management - Create/Update Product $(message)",
+    "inputs": [
+        {
+            "name": "ConnectedServiceNameSelector",
+            "type": "pickList",
+            "label": "Azure Connection Type",
+            "required": false,
+            "helpMarkDown": "",
+            "defaultValue": "ConnectedServiceNameARM",
+            "options": {
+                "ConnectedServiceNameARM": "Azure Resource Manager"
+            }
+        },
+        {
+            "name": "ConnectedServiceNameARM",
+            "type": "connectedService:AzureRM",
+            "label": "Azure RM Subscription",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Azure Resource Manager subscription to configure before running PowerShell",
+            "visibleRule": "ConnectedServiceNameSelector = ConnectedServiceNameARM"
+        },
+        {
+            "name": "ResourceGroupName",
+            "type": "pickList",
+            "label": "APIM Instance Resource group",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "helpMarkDown": "Enter or Select the Azure Resource group that contains the target APIM Instance."
+        },
+        {
+            "name": "APIMInstanceName",
+            "type": "pickList",
+            "label": "APIM Instance Name",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "helpMarkDown": "Select the target APIM Instance."
+        },
+        {
+            "name": "APIMProduct",
+            "type": "pickList",
+            "label": "Product",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Add or update product. Choose new name for a new product",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "APIMProductDisplayName",
+            "type": "pickList",
+            "label": "Display Name",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "API Name",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "APIMProductDescription",
+            "type": "multiline",
+            "label": "Description",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Description of product"
+        },
+        {
+            "name": "ProductSubscriptionRequired",
+            "type": "boolean",      
+            "label": "Subscription Required",
+            "helpMarkDown": "Should consumers subscribe to this product"
+        }, 
+        {
+            "name": "ProductSubscriptionsLimit",
+            "type": "pickList",
+            "label": "Subscription Limit",
+            "properties": {
+              "EditableOptions": "True"
+            },
+            "visibleRule": "ProductSubscriptionRequired = true"
+        },   
+        {
+            "name": "ProductApprovalRequired",
+            "type": "boolean",      
+            "label": "Approval Required",
+            "helpMarkDown": "Should subscriber requests be approved",
+            "visibleRule": "ProductSubscriptionRequired = true"
+        },
+        {
+            "name": "ProductState",
+            "type": "boolean",
+            "required": false,
+            "label": "Published",
+            "helpMarkDown": "Is the product published or not"      
+        },
+        {
+            "name": "APIMProductLegalTerms",
+            "type": "multiline",
+            "label": "Legal terms",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Legal terms of product"
+        },
+        {
+            "name": "ProductGroups",
+            "type": "multiline",
+            "label": "Groups",
+            "required": true,
+            "helpMarkDown": "Groups to add. One group per line."
+        },
+        {
+            "name": "ProductPolicyArtifact",
+            "type": "filePath",
+            "required":false,
+            "label": "Policy Artifact",
+            "helpMarkDown": "Policy Artifact. For instance $(System.DefaultWorkingDirectory)/<yourpolicy.xml>",
+            "defaultValue": ""
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "target": "ResourceGroupName",
+            "endpointId": "$(ConnectedServiceNameARM)",
+            "dataSourceName": "AzureResourceGroups"
+        },
+        {
+            "name": "ApimInstances",
+            "target": "APIMInstanceName",
+            "endpointId": "$(ConnectedServiceNameARM)",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service?api-version=2016-07-07",
+            "resultSelector": "jsonpath:$.value[*].name",
+            "parameters": {
+                "ResourceGroupName": "$(ResourceGroupName)"
+            }
+        },
+        {
+            "name": "ApiProducts",
+            "target": "APIMProduct",
+            "endpointId": "$(ConnectedServiceNameARM)",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/products?api-version=2016-07-07",
+            "resultSelector": "jsonpath:$.value[*].name",
+            "parameters": {
+                "ResourceGroupName": "$(ResourceGroupName)",
+                "APIMInstanceName": "$(APIMInstanceName)"
+            }
+        },
+        {
+            "target": "APIMProductDisplayName",
+            "endpointId": "$(ConnectedServiceNameARM)",
+            "endpointUrl": "{{endpoint.url}}/$(APIMProduct)?api-version=2017-03-01",
+            "resultSelector": "jsonpath:$.properties.displayName"
+        }
+    ],
+    "execution": {
+        "PowerShell3": {
+            "target": "$(currentDirectory)\\createOrUpdateProduct.ps1",
+            "argumentFormat": "",
+            "workingDirectory": "$(currentDirectory)"
+        }
+    }
+}
