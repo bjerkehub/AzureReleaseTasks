@@ -1,1 +1,1 @@
-tfx extension publish --mainifest-globs vss-extension.json --share-with SK-Integration --auth-type pat --token "z3a7arsgc6porp55bc2fij6skw444s7yujhqexvyruj5iinzvq6q" --service-url https://marketplace.visualstudio.com --rev-version
+tfx extension publish --mainifest-globs vss-extension.json --share-with SK-Integration --auth-type pat --token "<PAT-TOKEN>" --service-url https://marketplace.visualstudio.com --rev-version

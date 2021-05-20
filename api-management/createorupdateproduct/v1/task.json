@@ -1,10 +1,10 @@
 {
     "id": "9049c5b6-8fab-48fe-b432-14930d67b8ea",
     "name": "createorupdateproduct",
-    "friendlyName": "API Management - Create or update product - version 1.0.4",
-    "description": "API Management - Create or update product - version 1.0.4",
+    "friendlyName": "API Management - Create or update product - version 1.0.5",
+    "description": "API Management - Create or update product - version 1.0.5",
     "author": "DevOps Team - Joachim Bjerke",
-    "helpMarkDown": "API Management - Create or update product - version 1.0.4",
+    "helpMarkDown": "API Management - Create or update product - version 1.0.5",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "4"
+        "Patch": "5"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update Product $(message)",
@@ -64,7 +64,7 @@
         {
             "name": "APIMProduct",
             "type": "pickList",
-            "label": "Product",
+            "label": "Product Name",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "Add or update product. Choose new name for a new product",
@@ -75,7 +75,7 @@
         {
             "name": "APIMProductDisplayName",
             "type": "pickList",
-            "label": "Display Name",
+            "label": "Product Display Name",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "API Name",
@@ -133,7 +133,8 @@
             "type": "multiline",
             "label": "Groups",
             "required": true,
-            "helpMarkDown": "Groups to add. One group per line."
+            "helpMarkDown": "Groups to add. One group per line.",
+            "defaultValue": "administrators\r\ndevelopers"
         },
         {
             "name": "ProductPolicyArtifact",
