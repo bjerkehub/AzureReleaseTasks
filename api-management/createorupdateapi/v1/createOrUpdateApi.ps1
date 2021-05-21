@@ -53,6 +53,40 @@ Trace-VstsEnteringInvocation $MyInvocation
     $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
 
+    Write-Host "Checking Auth config"
+
+    if($Authorization -eq "OAuth")
+    {
+        $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OauthServer
+
+        if($oath)
+        {
+            Write-Host "OAuth Server: '$($OauthServer)' exists...continue"
+            $authServer = $OauthServer
+            $authScope = $OauthServer
+        }
+        else 
+        {
+            throw "Could not find any Oauth Server with id: '$($OauthServer)'"
+        }
+    }
+
+    if($Authorization -eq "OpenID")
+    {
+        $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OidServer
+
+        if($oath)
+        {
+            Write-Host "OAuth Server: '$($OidServer)' exists...continue"
+            $authServer = $OidServer
+            $authScope = $OidServer
+        }
+        else 
+        {
+            throw "Could not find any Oauth Server with id: '$($OidServer)'"
+        }
+    }
+
     Write-Host "Checking if the api exists..."
 
     try { $currentApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
@@ -175,39 +209,7 @@ Trace-VstsEnteringInvocation $MyInvocation
         }
     }
 
-    Write-Host "Checking Auth config"
-
-    if($Authorization -eq "OAuth")
-    {
-        $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OauthServer
-
-        if($oath)
-        {
-            Write-Host "OAuth Server: '$($OauthServer)' exists...continue"
-            $authServer = $OauthServer
-            $authScope = $OauthServer
-        }
-        else 
-        {
-            throw "Could not find any Oauth Server with id: '$($OauthServer)'"
-        }
-    }
-
-    if($Authorization -eq "OpenID")
-    {
-        $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OidServer
-
-        if($oath)
-        {
-            Write-Host "OAuth Server: '$($OidServer)' exists...continue"
-            $authServer = $OidServer
-            $authScope = $OidServer
-        }
-        else 
-        {
-            throw "Could not find any Oauth Server with id: '$($OidServer)'"
-        }
-    }
+    
 
     if($APIPolicy -ne "" -or $null -ne $APIPolicy)
     {
