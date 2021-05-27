@@ -1,0 +1,128 @@
+{
+    "id": "410f040e-6620-4f2b-b3f0-4a79fce24a85",
+    "name": "createorupdatenamedvalue",
+    "friendlyName": "API Management - Create/Update Named Value - version 1.0.2",
+    "description": "API Management - Create/Update Named Value - version 1.0.2",
+    "author": "DevOps Team - Joachim Bjerke",
+    "helpMarkDown": "API Management - Create/Update Named Value - version 1.0.2",
+    "category": "Utility",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "demands": [],
+    "version": {
+        "Major": "1",
+        "Minor": "0",
+        "Patch": "2"
+    },
+    "minimumAgentVersion": "1.95.0",
+    "instanceNameFormat": "API Management - Create/Update Named Value $(message)",
+    
+    "inputs": [
+        {
+            "name": "ConnectedSubscription",
+            "type": "connectedService:AzureRM",
+            "label": "Azure Subscription",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Azure Resource Manager subscription to configure before running PowerShell"
+        },
+        {
+            "name": "ResourceGroupName",
+            "type": "pickList",
+            "label": "Resource Group",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "helpMarkDown": "Enter or Select the Azure Resource group that contains the target APIM Instance."
+        },
+        {
+            "name": "APIMInstanceName",
+            "type": "pickList",
+            "label": "API Management Service Name",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "helpMarkDown": "Select the target APIM Instance."
+        },
+
+        {
+            "name": "Id",
+            "type": "string",
+            "label": "Name",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Name for the named value.",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "Name",
+            "type": "string",
+            "label": "Display Name",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Alphanumeric string used for referencing the property in the policies.",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "Value",
+            "type": "string",
+            "label": "Value",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Value of the named value. Can contain policy expressions. Maximum length is 1000 characters. It may not be empty or consist only of whitespace",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "IsSecret",
+            "type": "boolean",
+            "label": "Secret",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Whether the named value is a secret and its value should be encrypted"
+        },
+        {
+            "name": "Tags",
+            "type": "string",
+            "label": "Tag(s)",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Tags associated with the named value. Seperate with comma"
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "target": "ResourceGroupName",
+            "endpointId": "$(ConnectedSubscription)",
+            "dataSourceName": "AzureResourceGroups"
+        },
+        {
+            "name": "ApimInstances",
+            "target": "APIMInstanceName",
+            "endpointId": "$(ConnectedSubscription)",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service?api-version=2016-07-07",
+            "resultSelector": "jsonpath:$.value[*].name",
+            "parameters": {
+                "ResourceGroupName": "$(ResourceGroupName)"
+            }
+        }
+    ],
+    "execution": {
+        "PowerShell3": {
+            "target": "$(currentDirectory)\\createOrUpdateNamedValue.ps1",
+            "argumentFormat": "",
+            "workingDirectory": "$(currentDirectory)"
+        }
+    }
+}

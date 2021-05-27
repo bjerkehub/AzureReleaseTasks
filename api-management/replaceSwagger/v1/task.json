@@ -1,0 +1,48 @@
+{
+    "id": "5bb5ad7b-a5a2-4912-aed3-784c62ccd1c0",
+    "name": "replaceSwagger",
+    "friendlyName": "API Management - Replace swagger title - version 1.0.12",
+    "description": "API Management - Replace swagger title - version 1.0.12",
+    "author": "DevOps Team - Joachim Bjerke",
+    "helpMarkDown": "API Management - Replace swagger title - version 1.0.12",
+    "category": "Utility",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "demands": [],
+    "version": {
+        "Major": "1",
+        "Minor": "0",
+        "Patch": "12"
+    },
+    "minimumAgentVersion": "1.95.0",
+    "instanceNameFormat": "API Management - Replace swagger title $(message)",
+    "inputs": [
+
+        {
+            "name": "SwaggerPath",
+            "type": "filePath",
+            "required":false,
+            "label": "SwaggerPath",
+            "helpMarkDown": "Swagger path. For instance $(System.DefaultWorkingDirectory)/<swagger.json>",
+            "defaultValue": ""
+        },
+        {
+            "name": "TitleValue",
+            "type": "string",
+            "label": "TitleValue",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "New value for the title"
+        }
+    ],
+    "dataSourceBindings": [],
+    "execution": {
+        "PowerShell3": {
+            "target": "$(currentDirectory)\\replaceSwaggerConfig.ps1",
+            "argumentFormat": "",
+            "workingDirectory": "$(currentDirectory)"
+        }
+    }
+}

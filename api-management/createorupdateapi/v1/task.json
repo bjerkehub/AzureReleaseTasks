@@ -1,10 +1,10 @@
 {
     "id": "31fd7168-d542-400b-90b7-84e4eee27c07",
     "name": "createorupdateapi",
-    "friendlyName": "API Management - Create/Update API - version 1.0.15",
-    "description": "API Management - Create/Update API - version 1.0.15",
+    "friendlyName": "API Management - Create/Update API - version 1.0.23",
+    "description": "API Management - Create/Update API - version 1.0.23",
     "author": "DevOps Team",
-    "helpMarkDown": "API Management - Create/Update API - version 1.0.15",
+    "helpMarkDown": "API Management - Create/Update API - version 1.0.23",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "15"
+        "Patch": "23"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update API $(message)",
@@ -23,7 +23,7 @@
         {
             "name": "ConnectedSubscription",
             "type": "connectedService:AzureRM",
-            "label": "Azure RM Subscription",
+            "label": "Azure Subscription",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "Azure Resource Manager subscription to configure before running PowerShell"
@@ -31,7 +31,7 @@
         {
             "name": "ResourceGroupName",
             "type": "pickList",
-            "label": "APIM Instance Resource group",
+            "label": "Resource Group",
             "defaultValue": "",
             "required": true,
             "properties": {
@@ -42,7 +42,7 @@
         {
             "name": "APIMInstanceName",
             "type": "pickList",
-            "label": "APIM Instance Name",
+            "label": "API Management Service Name",
             "defaultValue": "",
             "required": true,
             "properties": {
@@ -54,7 +54,7 @@
         {
             "name": "ApiName",
             "type": "pickList",
-            "label": "API Name",
+            "label": "Api Name",
             "defaultValue": "",
             "required": true,
             "helpMarkDown": "New or existing API",
@@ -65,7 +65,7 @@
         {
             "name": "ApiDisplayName",
             "type": "string",
-            "label": "API Displayname",
+            "label": "Api Displayname",
             "defaultValue": "",
             "required": false,
             "helpMarkDown": "API Displayname",
@@ -74,9 +74,20 @@
             }
         },
         {
+            "name": "ApiDescription",
+            "type": "string",
+            "label": "Api Description",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Api Description",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
             "name": "BackendUrl",
             "type": "string",
-            "label": "Backend URL",
+            "label": "Backend Url",
             "defaultValue": "",
             "required": false,
             "helpMarkDown": "Set the backend URL"
@@ -84,19 +95,58 @@
         {
             "name": "ApiUrlSuffix",
             "type": "string",
-            "label": "API URL suffix",
+            "label": "Api Url Suffix",
             "defaultValue": "",
             "required": false,
             "helpMarkDown": "Set the URL suffix"
         },
-
         {
-            "name": "SwaggerPath",
-            "type": "filePath",
-            "label": "Swagger Path",
+            "name": "OpenAPISpec",
+            "type": "pickList",
+            "label": "OpenApi Version",
             "required": true,
-            "helpMarkDown": "Path of the swagger file. Should be fully qualified path or relative to the default working directory.",
-            "defaultValue": ""
+            "helpMarkDown": "Target Open API version",
+            "defaultValue": "v3",
+            "options": {
+                "v2": "v2",
+                "v3":"v3"        
+            },
+            "properties": {
+              "EditableOptions": "False"
+            }
+        },
+        {
+            "name": "SwaggerPicker",
+            "type": "pickList",
+            "label": "Definition Location",
+            "required": true,
+            "helpMarkDown": "Where is the API definition?",
+            "defaultValue": "File",
+            "options": {
+              "Url": "Url",
+              "File":"Filepath"
+            },
+            "properties": {
+              "EditableOptions": "True"
+            }
+        },    
+        {
+            "name": "SwaggerUrl",
+            "type": "string",
+            "label": "Api Definition Location Url",
+            "required": true,
+            "helpMarkDown": "Make sure the URL is connectable from the build servers",
+            "defaultValue": "",
+            "visibleRule": "SwaggerPicker=Url"
+        },
+        {
+            "name": "SwaggerFilePath",
+            "type": "filePath",
+            "label": "Api Definition File Path",
+            "required": true,
+            "helpMarkDown": "API Definition file path. For instance $(System.DefaultWorkingDirectory)/<openApi.json>",
+            "defaultValue": "",
+            "visibleRule": "SwaggerPicker=File"
         },
         {
             "name": "IsSubscriptionRequired",
@@ -108,7 +158,7 @@
             "name": "ShouldAddVersion",
             "type":"boolean",
             "required": true,
-            "label": "Add version",
+            "label": "Add Version",
             "helpMarkDown": "This will add a new version 'V1' if not exist, otherwise update current version"
         },
         {
@@ -116,7 +166,7 @@
             "type":"string",
             "required": false,
             "defaultValue": "v1",
-            "label": "VersionName",
+            "label": "Version Name",
             "helpMarkDown": "Name of Version to add. If empty, 'v1' will be used",
             "visibleRule":"ShouldAddVersion = true"
         },
@@ -131,20 +181,8 @@
             "type": "pickList",
             "label": "Product(s)",
             "required": true,
-            "helpMarkDown": "Product you want to add the API to",
+            "helpMarkDown": "Product you want to add the api to",
             "visibleRule": "ProductCreatedPrevious = false",
-            "properties":{
-                "EditableOptions": "True",
-                "MultiSelectFlatList":"True"
-
-            }
-        },
-        {
-            "name": "APITags",
-            "type": "pickList",
-            "label": "Tag(s)",
-            "required": false,
-            "helpMarkDown": "Tag you want to add the API to",
             "properties":{
                 "EditableOptions": "True",
                 "MultiSelectFlatList":"True"
@@ -193,7 +231,7 @@
             "name": "APIPolicy",
             "type": "filePath",
             "required":false,
-            "label": "API Policy filePath",
+            "label": "Api Policy filePath",
             "helpMarkDown": "Policy Artifact. For instance $(System.DefaultWorkingDirectory)/<yourpolicy.xml>",
             "defaultValue": ""
         },
@@ -201,7 +239,7 @@
             "name": "APIOperationPolicies",
             "type": "filePath",
             "required":false,
-            "label": "Operation Policies folderPath",
+            "label": "Operation policies folder path",
             "helpMarkDown": "Folder where your operation policy.xml files are located. The filenames should be <operation-id>.xml",
             "defaultValue": "",
             "properties":{

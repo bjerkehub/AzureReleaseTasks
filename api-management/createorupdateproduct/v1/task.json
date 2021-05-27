@@ -1,10 +1,10 @@
 {
     "id": "9049c5b6-8fab-48fe-b432-14930d67b8ea",
     "name": "createorupdateproduct",
-    "friendlyName": "API Management - Create or update product - version 1.0.5",
-    "description": "API Management - Create or update product - version 1.0.5",
+    "friendlyName": "API Management - Create or update product - version 1.0.10",
+    "description": "API Management - Create or update product - version 1.0.10",
     "author": "DevOps Team - Joachim Bjerke",
-    "helpMarkDown": "API Management - Create or update product - version 1.0.5",
+    "helpMarkDown": "API Management - Create or update product - version 1.0.10",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "5"
+        "Patch": "10"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update Product $(message)",
@@ -64,10 +64,10 @@
         {
             "name": "APIMProduct",
             "type": "pickList",
-            "label": "Product Name",
+            "label": "Product Id",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Add or update product. Choose new name for a new product",
+            "helpMarkDown": "The field may contain only numbers, letters, and dash (-) sign when preceded and followed by number or a letter",
             "properties": {
                 "EditableOptions": "True"
             }

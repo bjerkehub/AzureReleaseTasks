@@ -71,8 +71,8 @@ Trace-VstsEnteringInvocation $MyInvocation
 
     Write-Host 'Checking if the product exists'
 
-    $product = Get-AzApiManagementProduct -Context $apiManagementContext -ProductId $APIMProduct
-    
+    try { $product = Get-AzApiManagementProduct -Context $apiManagementContext -ProductId $APIMProduct } catch {$_.Exception.Response.StatusCode.Value__}
+
     if($product){
         Write-Host 'Product found...Updates product!'
 
@@ -105,14 +105,14 @@ Trace-VstsEnteringInvocation $MyInvocation
     Write-Host "Setting product: $($createdProducts) to variable: NewUpdatedProducts"
     Set-VstsTaskVariable -Name "NewUpdatedProducts" -Value $createdProducts
 
-    Write-Host 'Checking if the groups exists'
+    Write-Host "Checking if the groups exists: $($ProductGroups)"
 
 
     foreach($group in $ProductGroups)
     {
-        Write-Host $group
-        $groupExists = Get-AzApiManagementGroup -Context $apiManagementContext -GroupId $group
-
+        Write-Host "Checking if $($group) exists"
+        try { $groupExists = Get-AzApiManagementGroup -Context $apiManagementContext -GroupId $group } catch {$_.Exception.Response.StatusCode.Value__}
+        
         if($groupExists)
         {
             Write-Host "Group $($group) found...linking to product!"

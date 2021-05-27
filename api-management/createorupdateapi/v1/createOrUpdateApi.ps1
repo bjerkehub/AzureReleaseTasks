@@ -32,9 +32,9 @@ Trace-VstsEnteringInvocation $MyInvocation
     [string]$Authorization = Get-VstsInput -Name Authorization
     [string]$OauthServer = Get-VstsInput -Name oauth
     [string]$OidServer = Get-VstsInput -Name oid
-    [string]$SwaggerPath = Get-VstsInput -Name SwaggerPath
     [string]$ApiName = Get-VstsInput -Name ApiName
     [string]$ApiDisplayName = Get-VstsInput -Name ApiDisplayName
+    [string]$ApiDescription = Get-VstsInput -Name ApiDescription
     [string]$BackendUrl = Get-VstsInput -Name BackendUrl
     [string]$ApiUrlSuffix = Get-VstsInput -Name ApiUrlSuffix
     [bool]$ShouldAddVersion =  [System.Convert]::ToBoolean($(Get-VstsInput -Name ShouldAddVersion))
@@ -42,6 +42,10 @@ Trace-VstsEnteringInvocation $MyInvocation
     [string]$APIPolicy = Get-VstsInput -Name APIPolicy
     [string]$APIOperationPolicies = Get-VstsInput -Name APIOperationPolicies
     [string]$VersionName = Get-VstsInput -Name VersionName
+    [string]$OpenAPISpec = Get-VstsInput -Name OpenAPISpec
+    [string]$SwaggerPicker = Get-VstsInput -Name SwaggerPicker 
+    [string]$SwaggerFilePath = Get-VstsInput -Name SwaggerFilePath
+	[string]$SwaggerUrl=Get-VstsInput -Name SwaggerUrl
     
     $apiManagementContextParams = @{
         ResourceGroupName = $ApiMRG
@@ -89,16 +93,51 @@ Trace-VstsEnteringInvocation $MyInvocation
 
     Write-Host "Checking if the api exists..."
 
-    try { $currentApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
+    try { 
+        $currentApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName 
+        $currentApiName = Get-AzApiManagementApi -Context $apiManagementContext -Name $ApiDisplayName
+    } catch {
+        $_.Exception.Response.StatusCode.Value__
+    }
+
+    if($null -ne $currentApi -and $null -ne $currentApiName){
+        if($currentApiName.ApiId -ne $currentApi.ApiId){
+            throw "Api displayName: $($ApiDisplayName) is associated with another api. Please choose another display name"
+        }
+    }
+    if($null -ne $currentApiName -and $null -eq $currentApi){
+        throw "Api displayName: $($ApiDisplayName) is associated with another api. Please choose another display name"
+    }
 
     $importSwaggerParams = @{
         Context = $apiManagementContext 
         ApiId = $apiName 
-        SpecificationFormat = "Swagger" 
-        SpecificationPath = $swaggerPath
         Path = $apiURLSuffix 
         ServiceUrl = $backendUrl 
         Protocol = "Https" 
+        
+    }
+
+    if($OpenAPISpec -eq "v3"){
+        Write-Host "Setting specificationFormat = OpenApiJson"
+        $importSwaggerParams.SpecificationFormat = "OpenApiJson" 
+    }
+
+    else{
+        Write-Host "Setting specificationFormat = Swagger"
+        $importSwaggerParams.SpecificationFormat = "Swagger" 
+    }
+
+    switch($SwaggerPicker)
+    {
+        "Url"{
+            Write-Host "Import openApi from url: $($SwaggerUrl)"
+            $importSwaggerParams.SpecificationUrl = $SwaggerUrl
+        }
+        "File"{
+            Write-Host "Import openApi from file: $($SwaggerFilePath)"
+            $importSwaggerParams.SpecificationPath = $SwaggerFilePath
+        }
     }
 
     if($currentApi)
@@ -122,16 +161,18 @@ Trace-VstsEnteringInvocation $MyInvocation
             
         }
         $api.Name = $ApiDisplayName
-        $api.Description = $ApiDisplayName
+        $api.Description = $ApiDescription
         $api.Path = $ApiUrlSuffix
         $api.Protocols = "Https"
         $api.ServiceUrl = $BackendUrl
         $api.AuthorizationServerId = $authServer
-        $api.AuthorizationScope = $authScope
         $api.SubscriptionRequired = $IsSubscriptionRequired
+        
 
         Set-AzApiManagementApi -InputObject $api
         Import-AzApiManagementApi @importSwaggerParams
+        Write-Host "Set api display name: $($ApiDisplayName)"
+        Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
     }
     else
     {
@@ -139,13 +180,12 @@ Trace-VstsEnteringInvocation $MyInvocation
         $apiParams = @{
             Context = $apiManagementContext
             ApiId = $apiName
-            Description = $ApiDisplayName
+            Name = $ApiDisplayName 
+            Description = $ApiDescription
             Path = $apiURLSuffix 
             Protocols = "Https" 
             ServiceUrl = $backendUrl
-            Name = $ApiDisplayName 
             AuthorizationServerId = $authServer 
-            AuthorizationScope = $authScope 
             SubscriptionRequired = $IsSubscriptionRequired 
         }
 
@@ -164,6 +204,8 @@ Trace-VstsEnteringInvocation $MyInvocation
             $importSwaggerParams.ApiVersion = $VersionName
             $importSwaggerParams.ApiVersionSetId = $apiversionSet.ApiVersionSetId
             Import-AzApiManagementApi @importSwaggerParams
+            Write-Host "Set api display name: $($ApiDisplayName)"
+            Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
         }
         else
         {
@@ -172,6 +214,8 @@ Trace-VstsEnteringInvocation $MyInvocation
             New-AzApiManagementApi @apiParams
             Write-Host "Importing without version..."
             Import-AzApiManagementApi @importSwaggerParams
+            Write-Host "Set api display name: $($ApiDisplayName)"
+            Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
         } 
     }
 
@@ -209,7 +253,13 @@ Trace-VstsEnteringInvocation $MyInvocation
         }
     }
 
+    Write-Host "Setting up diagnostic settings for api..."
+    $diagnostic = Get-AzApiManagementDiagnostic -Context $apiManagementContext -DiagnosticId ApplicationInsights 
+    $diagnostic.ApiId = $apiName
+
+    Set-AzApiManagementDiagnostic -InputObject $diagnostic
     
+    Write-Host "Diagnostic settings for api successfully configured"
 
     if($APIPolicy -ne "" -or $null -ne $APIPolicy)
     {
