@@ -58,9 +58,9 @@ Trace-VstsEnteringInvocation $MyInvocation
     if($existingNamedValue){
         Write-Host "Named value $($Id) found...update..."
         if($IsSecret){
-            New-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray -Secret
+            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray -Secret
         }else{
-            New-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray
+            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray
         }
         
         Write-Host "Named value $($Id) updated!"
@@ -68,9 +68,9 @@ Trace-VstsEnteringInvocation $MyInvocation
     else{
         Write-Host "Named value $($Id) not found...creating..."
         if($IsSecret){
-            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray -Secret
+            New-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray -Secret
         }else{
-            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray
+            New-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray
         }
         
         Write-Host "Named value $($Id) created!"
