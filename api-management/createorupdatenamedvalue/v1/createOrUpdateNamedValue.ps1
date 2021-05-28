@@ -9,7 +9,7 @@ Trace-VstsEnteringInvocation $MyInvocation
     Import-Module $PSScriptRoot\ps_modules\VstsAzureHelpers_ 
     Install-Module -Name Az.ApiManagement -AllowClobber -Scope CurrentUser -Force
     Install-Module -Name Az.Resources -AllowClobber -Scope CurrentUser -Force
-    Import-Module Az.ApiManagement
+    Import-Module Az.ApiManagement 
     Import-Module Az.Resources
 
     $ConnectedSubscription = Get-VstsInput -Name ConnectedSubscription -Require
@@ -44,7 +44,6 @@ Trace-VstsEnteringInvocation $MyInvocation
 
     $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
-
     Write-Host "Checking if named value: $($Id) exists..."
     try { $existingNamedValue = Get-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id } catch {$_.Exception.Response.StatusCode.Value__}
 
@@ -58,9 +57,9 @@ Trace-VstsEnteringInvocation $MyInvocation
     if($existingNamedValue){
         Write-Host "Named value $($Id) found...update..."
         if($IsSecret){
-            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray -Secret
+            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray -Secret $True
         }else{
-            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray
+            Set-AzApiManagementNamedValue -Context $apiManagementContext -NamedValueId $Id -Name $Name -Value $Value -Tag $tagArray -Secret $False
         }
         
         Write-Host "Named value $($Id) updated!"
