@@ -57,6 +57,31 @@ Trace-VstsEnteringInvocation $MyInvocation
     $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
 
+
+    try { $existingApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
+
+    
+    if($ShouldAddVersion){
+
+        if($null -ne $existingApi){
+            if($null -ne $existingApi.ApiVersionSetId){
+                $versionSet = $existingApi.ApiVersionSetId
+            }
+
+            
+            $existingApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId 
+
+
+        }
+
+
+
+    }
+
+
+
+
+
     Write-Host "Checking Auth config"
 
     if($Authorization -eq "OAuth")
@@ -67,7 +92,6 @@ Trace-VstsEnteringInvocation $MyInvocation
         {
             Write-Host "OAuth Server: '$($OauthServer)' exists...continue"
             $authServer = $OauthServer
-            $authScope = $OauthServer
         }
         else 
         {
@@ -83,13 +107,27 @@ Trace-VstsEnteringInvocation $MyInvocation
         {
             Write-Host "OAuth Server: '$($OidServer)' exists...continue"
             $authServer = $OidServer
-            $authScope = $OidServer
         }
         else 
         {
             throw "Could not find any Oauth Server with id: '$($OidServer)'"
         }
     }
+
+    if($ShouldAddVersion){
+        Write-Host "Checking if version-set exists..."
+        try { $versionSet = Get-AzApiManagementApiVersionSet -Context $apiManagementContext -ApiVersionSetId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
+        
+        if($null -eq $versionSet){
+
+        }
+
+
+    }
+
+
+
+
 
     Write-Host "Checking if the api exists..."
 
@@ -153,7 +191,7 @@ Trace-VstsEnteringInvocation $MyInvocation
             else
             {
                 Write-Host "Creating new versionSet..."
-                $apiVersionSet = New-AzApiManagementApiVersionSet -Context $apiManagementContext -Name $ApiName -Scheme Segment 
+                $apiVersionSet = New-AzApiManagementApiVersionSet -Context $apiManagementContext -Name $ApiName -Scheme Segment -ApiVersionSetId $ApiName
             }
 
             $api.ApiVersionSetId = $apiversionSet.Id
