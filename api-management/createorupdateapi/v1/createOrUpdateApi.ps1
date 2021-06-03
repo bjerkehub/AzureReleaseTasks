@@ -28,7 +28,7 @@ Trace-VstsEnteringInvocation $MyInvocation
     [string]$apimIns = Get-VstsInput -Name APIMInstanceName
 
     [bool]$ProductCreatedPrevious = [System.Convert]::ToBoolean($(Get-VstsInput -Name ProductCreatedPrevious))
-    [string]$APIMProducts = $(Get-VstsInput -Name APIMProducts).Split([Environment]::NewLine)
+    [string]$APIMProducts = Get-VstsInput -Name APIMProducts
     [string]$Authorization = Get-VstsInput -Name Authorization
     [string]$OauthServer = Get-VstsInput -Name oauth
     [string]$OidServer = Get-VstsInput -Name oid
@@ -56,114 +56,27 @@ Trace-VstsEnteringInvocation $MyInvocation
 
     $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
-
-
-    try { $existingApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
-
     
-    if($ShouldAddVersion){
-
-        if($null -ne $existingApi){
-            if($null -ne $existingApi.ApiVersionSetId){
-                $versionSet = $existingApi.ApiVersionSetId
-            }
-
-            
-            $existingApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId 
-
-
-        }
-
-
-
-    }
-
-
-
-
-
-    Write-Host "Checking Auth config"
-
-    if($Authorization -eq "OAuth")
-    {
-        $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OauthServer
-
-        if($oath)
-        {
-            Write-Host "OAuth Server: '$($OauthServer)' exists...continue"
-            $authServer = $OauthServer
-        }
-        else 
-        {
-            throw "Could not find any Oauth Server with id: '$($OauthServer)'"
-        }
-    }
-
-    if($Authorization -eq "OpenID")
-    {
-        $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OidServer
-
-        if($oath)
-        {
-            Write-Host "OAuth Server: '$($OidServer)' exists...continue"
-            $authServer = $OidServer
-        }
-        else 
-        {
-            throw "Could not find any Oauth Server with id: '$($OidServer)'"
-        }
-    }
-
-    if($ShouldAddVersion){
-        Write-Host "Checking if version-set exists..."
-        try { $versionSet = Get-AzApiManagementApiVersionSet -Context $apiManagementContext -ApiVersionSetId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
-        
-        if($null -eq $versionSet){
-
-        }
-
-
-    }
-
-
-
-
-
-    Write-Host "Checking if the api exists..."
-
-    try { 
-        $currentApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName 
-        $currentApiName = Get-AzApiManagementApi -Context $apiManagementContext -Name $ApiDisplayName
-    } catch {
-        $_.Exception.Response.StatusCode.Value__
-    }
-
-    if($null -ne $currentApi -and $null -ne $currentApiName){
-        if($currentApiName.ApiId -ne $currentApi.ApiId){
-            throw "Api displayName: $($ApiDisplayName) is associated with another api. Please choose another display name"
-        }
-    }
-    if($null -ne $currentApiName -and $null -eq $currentApi){
-        throw "Api displayName: $($ApiDisplayName) is associated with another api. Please choose another display name"
-    }
-
     $importSwaggerParams = @{
         Context = $apiManagementContext 
-        ApiId = $apiName 
         Path = $apiURLSuffix 
         ServiceUrl = $backendUrl 
         Protocol = "Https" 
         
     }
 
-    if($OpenAPISpec -eq "v3"){
-        Write-Host "Setting specificationFormat = OpenApiJson"
-        $importSwaggerParams.SpecificationFormat = "OpenApiJson" 
-    }
-
-    else{
-        Write-Host "Setting specificationFormat = Swagger"
-        $importSwaggerParams.SpecificationFormat = "Swagger" 
+    switch ($OpenAPISpec) {
+        "v2" { 
+            Write-Host "Setting specificationFormat = Swagger"
+            $importSwaggerParams.SpecificationFormat = "Swagger" 
+        }
+        "v3" { 
+            Write-Host "Setting specificationFormat = OpenApiJson"
+            $importSwaggerParams.SpecificationFormat = "OpenApiJson" 
+        }
+        Default {
+            throw "OpenApi version not set. Suported values is: v2 or v3"
+        }
     }
 
     switch($SwaggerPicker)
@@ -176,93 +89,39 @@ Trace-VstsEnteringInvocation $MyInvocation
             Write-Host "Import openApi from file: $($SwaggerFilePath)"
             $importSwaggerParams.SpecificationPath = $SwaggerFilePath
         }
+        Default{
+            throw "OpenApi location not set. Suported values is: Url or Filepath"
+        }
     }
 
-    if($currentApi)
-    {
-        Write-Host "API Found...Importing"
-        $api = $currentApi
-        if($ShouldAddVersion)
-        {
-            if($currentApi.ApiVersionSetId)
-            {
-                $apiversionSet = Get-AzResource -ResourceId $currentApi.ApiVersionSetId
+    Write-Host "Checking Auth config"
+
+    switch ($Authorization) {
+        "OAuth" { 
+            try { $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OauthServer } catch {$_.Exception.Response.StatusCode.Value__}
+            if($oath){
+                Write-Host "OAuth Server: '$($OauthServer)' exists...continue"
+                $authServer = $OauthServer
+            }else{
+                throw "Could not find any Oauth Server with id: '$($OauthServer)'"
             }
-            else
-            {
-                Write-Host "Creating new versionSet..."
-                $apiVersionSet = New-AzApiManagementApiVersionSet -Context $apiManagementContext -Name $ApiName -Scheme Segment -ApiVersionSetId $ApiName
+        }
+        "OpenID"{
+            try { $oath = Get-AzApiManagementAuthorizationServer -Context $apiManagementContext -ServerId $OidServer } catch {$_.Exception.Response.StatusCode.Value__}
+            if($oath){
+                Write-Host "OAuth Server: '$($OidServer)' exists...continue"
+                $authServer = $OidServer
+            }else{
+                throw "Could not find any Oauth Server with id: '$($OidServer)'"
             }
-
-            $api.ApiVersionSetId = $apiversionSet.Id
-            $api.ApiVersion = $VersionName
-            
         }
-        $api.Name = $ApiDisplayName
-        $api.Description = $ApiDescription
-        $api.Path = $ApiUrlSuffix
-        $api.Protocols = "Https"
-        $api.ServiceUrl = $BackendUrl
-        $api.AuthorizationServerId = $authServer
-        $api.SubscriptionRequired = $IsSubscriptionRequired
-        
-
-        Set-AzApiManagementApi -InputObject $api
-        Import-AzApiManagementApi @importSwaggerParams
-        Write-Host "Set api display name: $($ApiDisplayName)"
-        Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
-    }
-    else
-    {
-        
-        $apiParams = @{
-            Context = $apiManagementContext
-            ApiId = $apiName
-            Name = $ApiDisplayName 
-            Description = $ApiDescription
-            Path = $apiURLSuffix 
-            Protocols = "Https" 
-            ServiceUrl = $backendUrl
-            AuthorizationServerId = $authServer 
-            SubscriptionRequired = $IsSubscriptionRequired 
-        }
-
-        
-        if($ShouldAddVersion)
-        {
-            Write-Host "Creating new versionSet..."
-            $apiVersionSet = New-AzApiManagementApiVersionSet -Context $apiManagementContext -Name $ApiName -Scheme Segment 
-            Write-Host "Api not found...Creating..."
-            
-            $apiParams.ApiVersionSetId = $apiversionSet.ApiVersionSetId 
-            $apiParams.ApiVersion = $VersionName
-            New-AzApiManagementApi @apiParams
-            
-            Write-Host "Importing with version..."
-            $importSwaggerParams.ApiVersion = $VersionName
-            $importSwaggerParams.ApiVersionSetId = $apiversionSet.ApiVersionSetId
-            Import-AzApiManagementApi @importSwaggerParams
-            Write-Host "Set api display name: $($ApiDisplayName)"
-            Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
-        }
-        else
-        {
-            Write-Host "Api not found...Creating..."
-            
-            New-AzApiManagementApi @apiParams
-            Write-Host "Importing without version..."
-            Import-AzApiManagementApi @importSwaggerParams
-            Write-Host "Set api display name: $($ApiDisplayName)"
-            Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
-        } 
     }
 
-    $products = $APIMProducts;
+    $products = $APIMProducts.Trim().Split(",")
 
     if($ProductCreatedPrevious -eq $true){
         Write-Host 'Checking product(s) created by prevous task'
         $newProducts = Get-VstsTaskVariable -Name "NewUpdatedProducts"
-        Write-Host "New product: $($newProducts)"
 
         if ([string]::IsNullOrWhiteSpace($newProducts))
         {
@@ -271,29 +130,113 @@ Trace-VstsEnteringInvocation $MyInvocation
         
         $products = $newProducts.Split(";")
         Write-Host "Products created by a previous task: $($products | Out-String)"
-        Write-Host "Number of products created by a previous task(s): $($products.Length)"
+    }
+    else{
+        Write-Host "Checking if products exists"    
+        foreach($product in $products)
+        {
+            try { $existingProduct = Get-AzApiManagementProduct -Context $apiManagementContext -ProductId $product } catch {$_.Exception.Response.StatusCode.Value__}
+
+            if($existingProduct)
+            {
+                Write-Host "Product: '$($product)' exists...continue"
+                # Write-Host "Linking API to product: $($product)"
+                # Add-AzApiManagementApiToProduct -Context $apiManagementContext -ProductId $product -ApiId $ApiName
+            }
+            else 
+            {
+                throw "Could not find any product with name: $($product)"   
+            }
+        }    
     }
 
+    $versionSetId = $null
+    $versionSetName = $null
+    $apiVersion = $null
+
+
+    Write-Host "Checking if versjonset $($ApiName) exists..."
+    try { $versionSet = Get-AzApiManagementApiVersionSet -Context $apiManagementContext -ApiVersionSetId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
+    
+    if($versionSet){
+        Write-Host "VersionSet exists...update"
+        $versionSetId = $versionSet.Id
+        $versionSet.DisplayName = $ApiDisplayName
+        Set-AzApiManagementApiVersionSet -InputObject $versionSet
+    }
+    
+    if($ShouldAddVersion){
+        $versionSetId = $ApiName
+        $versionSetName = $ApiDisplayName
+        
+        if($null -eq $versionSet){
+            Write-Host "VersionSet not exists...creating"
+            $versionSet = New-AzApiManagementApiVersionSet -Context $apiManagementContext -ApiVersionSetId $versionSetId -Name $versionSetName -Scheme Segment
+        }
+    
+        try { $api = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
+    
+        if($api){
+            $api.ApiVersionSetId = $versionSet.Id
+            $api.ApiVersionSetDescription = $versionSet.Description
+            Set-AzApiManagementApi -InputObject $api 
+        }
+    
+        $ApiName = "$($ApiName)-$($VersionName)"
+        $apiVersion = $VersionName
+    
+    }
+    
+    Write-Host "Checking if api $($ApiName) exists"
+    try { $existingApi = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName } catch {$_.Exception.Response.StatusCode.Value__}
+    
+    
+    $apiParams = @{
+        Context = $apiManagementContext
+        Name = $ApiDisplayName 
+        Description = $ApiDescription
+        Path = $ApiUrlSuffix
+        Protocols = "Https"
+        ServiceUrl = $BackendUrl
+        AuthorizationServerId = $authServer
+        SubscriptionRequired = $IsSubscriptionRequired
+    }
+    
+    if($existingApi){
+        Write-Host "Api exists...update"
+        $apiParams.ApiId = $existingApi.ApiId
+        Set-AzApiManagementApi  @apiParams
+    }
+    
+    else{
+        Write-Host "Api not exists...creating"
+        $apiParams.ApiId = $ApiName
+        $apiParams.ApiVersionSetId = $versionSetId
+        $apiParams.ApiVersion = $apiVersion
+        New-AzApiManagementApi @apiParams
+    }
+    
+    $importSwaggerParams.ApiId = $ApiName
+    $importSwaggerParams.ApiVersionSetId = $versionSetId
+    $importSwaggerParams.ApiVersion = $apiVersion
+
+    Write-Host "Importing API from OpenApi"
+    Import-AzApiManagementApi @importSwaggerParams
+    Write-Host "Set api display name: $($ApiDisplayName)"
+    Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
+    
+
+    
     foreach($product in $products)
     {
         Write-Host "Linking API to product: $($product)"
-        try { $existingProduct = Get-AzApiManagementProduct -Context $apiManagementContext -ProductId $product } catch {$_.Exception.Response.StatusCode.Value__}
+        Add-AzApiManagementApiToProduct -Context $apiManagementContext -ProductId $product -ApiId $ApiName
+    }    
 
-        if($existingProduct)
-        {
-            Write-Host "Product: '$($product)' exists...continue"
-            Write-Host "Linking API to product: $($product)"
-            Add-AzApiManagementApiToProduct -Context $apiManagementContext -ProductId $product -ApiId $ApiName
-        }
-        else 
-        {
-            throw "Could not find any product with name: $($product)"   
-        }
-    }
-
+    
     Write-Host "Setting up diagnostic settings for api..."
     $diagnostic = Get-AzApiManagementDiagnostic -Context $apiManagementContext -DiagnosticId ApplicationInsights 
-    $diagnostic.ApiId = $apiName
+    $diagnostic.ApiId = $ApiName
 
     Set-AzApiManagementDiagnostic -InputObject $diagnostic
     
@@ -315,7 +258,7 @@ Trace-VstsEnteringInvocation $MyInvocation
         {
             $fullName = $file.FullName
             $baseName = (Get-Item $fullName).BaseName
-            $operation = Get-AzApiManagementOperation -Context $apiManagementContext -ApiId $apiName -OperationId $baseName 
+            $operation = Get-AzApiManagementOperation -Context $apiManagementContext -ApiId $ApiName -OperationId $baseName 
 
             if($operation){
                 Set-AzApiManagementPolicy -Context $apiManagementContext -ApiId $ApiName -OperationId $operation.OperationId -PolicyFilePath $fullName -Format RawXml

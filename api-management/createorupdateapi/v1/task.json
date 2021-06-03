@@ -1,10 +1,10 @@
 {
     "id": "31fd7168-d542-400b-90b7-84e4eee27c07",
     "name": "createorupdateapi",
-    "friendlyName": "API Management - Create/Update API - version 1.0.23",
-    "description": "API Management - Create/Update API - version 1.0.23",
+    "friendlyName": "API Management - Create/Update API - version 1.0.27",
+    "description": "API Management - Create/Update API - version 1.0.27",
     "author": "DevOps Team",
-    "helpMarkDown": "API Management - Create/Update API - version 1.0.23",
+    "helpMarkDown": "API Management - Create/Update API - version 1.0.27",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "23"
+        "Patch": "27"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update API $(message)",
