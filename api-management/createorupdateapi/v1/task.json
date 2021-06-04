@@ -1,10 +1,10 @@
 {
     "id": "31fd7168-d542-400b-90b7-84e4eee27c07",
     "name": "createorupdateapi",
-    "friendlyName": "API Management - Create/Update API - version 1.0.27",
-    "description": "API Management - Create/Update API - version 1.0.27",
+    "friendlyName": "API Management - Create/Update API - version 1.0.28",
+    "description": "API Management - Create/Update API - version 1.0.28",
     "author": "DevOps Team",
-    "helpMarkDown": "API Management - Create/Update API - version 1.0.27",
+    "helpMarkDown": "API Management - Create/Update API - version 1.0.28",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "27"
+        "Patch": "28"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update API $(message)",
@@ -257,7 +257,7 @@
             "name": "ApimInstances",
             "target": "APIMInstanceName",
             "endpointId": "$(ConnectedSubscription)",
-            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service?api-version=2016-07-07",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service?api-version=2016-07-07",
             "resultSelector": "jsonpath:$.value[*].name",
             "parameters": {
                 "ResourceGroupName": "$(ResourceGroupName)"
@@ -267,7 +267,7 @@
             "name": "OauthServers",
             "target": "oauth",
             "endpointId": "$(ConnectedSubscription)",
-            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/authorizationServers?api-version=2019-12-01",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/authorizationServers?api-version=2019-12-01",
             "resultSelector": "jsonpath:$.value[*].name",
             "parameters": {
                 "ResourceGroupName": "$(ResourceGroupName)",
@@ -278,7 +278,7 @@
             "name": "OidServers",
             "target": "oid",
             "endpointId": "$(ConnectedSubscription)",
-            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/authorizationServers?api-version=2019-12-01",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/authorizationServers?api-version=2019-12-01",
             "resultSelector": "jsonpath:$.value[*].name",
             "parameters": {
                 "ResourceGroupName": "$(ResourceGroupName)",
@@ -289,7 +289,7 @@
             "name": "APIMAPIName",
             "target": "ApiName",
             "endpointId": "$(ConnectedSubscription)",
-            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/apis?api-version=2019-12-01",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/apis?api-version=2019-12-01",
             "resultSelector": "jsonpath:$.value[*].name",
             "parameters": {
                 "ResourceGroupName": "$(ResourceGroupName)",
@@ -300,7 +300,7 @@
             "name": "APIProducts",
             "target": "APIMProducts",
             "endpointId": "$(ConnectedSubscription)",
-            "endpointUrl": "{{endpoint.url}}/subscriptions/$(endpoint.subscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/products?api-version=2019-12-01",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/products?api-version=2019-12-01",
             "resultSelector": "jsonpath:$.value[*].name",
             "parameters": {
                 "ResourceGroupName": "$(ResourceGroupName)",
