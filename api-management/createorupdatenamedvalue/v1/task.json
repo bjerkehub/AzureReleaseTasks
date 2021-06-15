@@ -1,10 +1,10 @@
 {
     "id": "410f040e-6620-4f2b-b3f0-4a79fce24a85",
     "name": "createorupdatenamedvalue",
-    "friendlyName": "API Management - Create/Update Named Value - version 1.0.19",
-    "description": "API Management - Create/Update Named Value - version 1.0.19",
+    "friendlyName": "API Management - Create/Update Named Value - version 1.0.20",
+    "description": "API Management - Create/Update Named Value - version 1.0.20",
     "author": "DevOps Team - Joachim Bjerke",
-    "helpMarkDown": "API Management - Create/Update Named Value - version 1.0.19",
+    "helpMarkDown": "API Management - Create/Update Named Value - version 1.0.20",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "19"
+        "Patch": "20"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update Named Value $(message)",

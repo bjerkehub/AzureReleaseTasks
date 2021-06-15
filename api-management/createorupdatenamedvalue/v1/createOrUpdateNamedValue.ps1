@@ -42,8 +42,15 @@ Trace-VstsEnteringInvocation $MyInvocation
         ServiceName = $apimIns
     }
 
-    Write-Host "ClientId: $($clientId)"
-    Write-Host "ClientSecret: $($clientSecret)"
+    $securedClientID = ConvertTo-SecureString $clientId -AsPlainText -Force
+    $bstrClientId = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedClientID)
+    $plainClienId = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrClientId)
+
+    $securedClientSecret = ConvertTo-SecureString $clientSecret -AsPlainText -Force
+    $bstrClientSecret = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedClientSecret)
+    $plainClienSecret = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrClientSecret)
+    Write-Host "ClientId: $($plainClienId)"
+    Write-Host "ClientSecret: $($plainClienSecret)"
     Write-Host "endpointUrl: $($endpointUrl)"
 
     $apiManagementContext = New-AzApiManagementContext @apiManagementContextParams
