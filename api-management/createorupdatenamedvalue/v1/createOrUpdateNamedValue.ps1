@@ -46,9 +46,14 @@ Trace-VstsEnteringInvocation $MyInvocation
     $bstrClientId = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedClientID)
     $plainClienId = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrClientId)
 
+    $plainClienId = [System.Net.NetworkCredential]::new("", $securedClientID).Password
+
     $securedClientSecret = ConvertTo-SecureString $clientSecret -AsPlainText -Force
     $bstrClientSecret = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedClientSecret)
     $plainClienSecret = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrClientSecret)
+
+    $plainClienSecret = [System.Net.NetworkCredential]::new("", $securedClientSecret).Password
+
     Write-Host "ClientId: $($plainClienId)"
     Write-Host "ClientSecret: $($plainClienSecret)"
     Write-Host "endpointUrl: $($endpointUrl)"
@@ -59,28 +64,30 @@ Trace-VstsEnteringInvocation $MyInvocation
 
     Write-Host "Reqesting accessToken"
 
-    $body="resource=https%3A%2F%2Fmanagement.azure.com%2F"+
-            "&client_id=$($clientId)"+
-            "&grant_type=client_credentials"+
-            "&client_secret=$($clientSecret)"
-    try
-    {
-        $resp=Invoke-WebRequest -UseBasicParsing -Uri "$($Cloud)/$($tenantId)/oauth2/token" `
-            -Method POST `
-            -Body $body| ConvertFrom-Json    
+    # $body="resource=https%3A%2F%2Fmanagement.azure.com%2F"+
+    #         "&client_id=$($clientId)"+
+    #         "&grant_type=client_credentials"+
+    #         "&client_secret=$($clientSecret)"
+    # try
+    # {
+    #     $resp=Invoke-WebRequest -UseBasicParsing -Uri "$($Cloud)/$($tenantId)/oauth2/token" `
+    #         -Method POST `
+    #         -Body $body| ConvertFrom-Json    
 
-        Write-Host "Successfully received access-token"
+    #     Write-Host "Successfully received access-token"
     
-    }
-    catch [System.Net.WebException] 
-    {
-        $er=$_.ErrorDetails.Message.ToString()|ConvertFrom-Json
-        write-host $er.error.details
-        throw
-    }
+    # }
+    # catch [System.Net.WebException] 
+    # {
+    #     $er=$_.ErrorDetails.Message.ToString()|ConvertFrom-Json
+    #     write-host $er.error.details
+    #     throw
+    # }
+
+    $accessToken = Get-AzAccessToken 
     
     $headers = @{
-        Authorization = "Bearer $($resp.access_token)"        
+        Authorization = "Bearer $($accessToken)"        
     }
     
     
