@@ -13,16 +13,16 @@ Trace-VstsEnteringInvocation $MyInvocation
     Import-Module Az.Resources
 
     $ConnectedSubscription = Get-VstsInput -Name ConnectedSubscription -Require
-    $endPointRM = Get-VstsEndpoint -Name $ConnectedSubscription -Require
-    $endpointUrl = $endPointRM.Url
-    $subscriptionId = $endPointRM.Data.subscriptionId
-    $clientId = $endPointRM.Auth.Parameters.ServicePrincipalId
-    $clientSecret = $endPointRM.Auth.Parameters.ServicePrincipalKey
-    $tenantId = $endPointRM.Auth.Parameters.TenantId
+    $endPoint = Get-VstsEndpoint -Name $ConnectedSubscription -Require
+    $endpointUrl = $endPoint.Url
+    $subscriptionId = $endPoint.Data.subscriptionId
+    $clientId = $endPoint.Auth.Parameters.ServicePrincipalId
+    $clientSecret = $endpoint.Auth.Parameters.ServicePrincipalKey
+    $tenantId = $endPoint.Auth.Parameters.TenantId
     $Cloud = "https://login.microsoftonline.com"
-    $sec = $clientSecret | ConvertTo-SecureString -AsPlainText -Force
-    $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $clientid, $sec 
-    Connect-AzAccount -Tenant $tenantId -Credential $Credential -Subscription $subscriptionId -ServicePrincipal
+    # $sec = $clientSecret | ConvertTo-SecureString -AsPlainText -Force
+    # $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $clientid, $sec 
+    # Connect-AzAccount -Tenant $tenantId -Credential $Credential -Subscription $subscriptionId -ServicePrincipal
 
     [string]$ApiMRG = Get-VstsInput -Name ResourceGroupName -Require 
     [string]$apimIns = Get-VstsInput -Name APIMInstanceName
@@ -42,54 +42,17 @@ Trace-VstsEnteringInvocation $MyInvocation
         ServiceName = $apimIns
     }
 
-    $securedClientID = ConvertTo-SecureString $clientId -AsPlainText -Force
-    $bstrClientId = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedClientID)
-    $plainClienId = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrClientId)
-
-    $plainClienId = [System.Net.NetworkCredential]::new("", $securedClientID).Password
-
-    $securedClientSecret = ConvertTo-SecureString $clientSecret -AsPlainText -Force
-    $bstrClientSecret = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedClientSecret)
-    $plainClienSecret = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstrClientSecret)
-
-    $plainClienSecret = [System.Net.NetworkCredential]::new("", $securedClientSecret).Password
-
-    Write-Host "ClientId: $($plainClienId)"
-    Write-Host "ClientSecret: $($plainClienSecret)"
-    Write-Host "endpointUrl: $($endpointUrl)"
-
+    
     $apiManagementContext = New-AzApiManagementContext @apiManagementContextParams
 
     $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
     Write-Host "Reqesting accessToken"
+ 
+    . "$PSScriptRoot\utility.ps1"
+    ##. ".\createorupdatenamedvalue\v1\utility.ps1"
 
-    # $body="resource=https%3A%2F%2Fmanagement.azure.com%2F"+
-    #         "&client_id=$($clientId)"+
-    #         "&grant_type=client_credentials"+
-    #         "&client_secret=$($clientSecret)"
-    # try
-    # {
-    #     $resp=Invoke-WebRequest -UseBasicParsing -Uri "$($Cloud)/$($tenantId)/oauth2/token" `
-    #         -Method POST `
-    #         -Body $body| ConvertFrom-Json    
-
-    #     Write-Host "Successfully received access-token"
-    
-    # }
-    # catch [System.Net.WebException] 
-    # {
-    #     $er=$_.ErrorDetails.Message.ToString()|ConvertFrom-Json
-    #     write-host $er.error.details
-    #     throw
-    # }
-
-    $accessToken = Get-AzAccessToken 
-    
-    $headers = @{
-        Authorization = "Bearer $($accessToken)"        
-    }
-    
+    $accessToken = Get-AccessToken -clientId $clientId -clientSecret $clientSecret
     
     if($MultiInsert){
         Write-Host "Get config..."
@@ -107,47 +70,7 @@ Trace-VstsEnteringInvocation $MyInvocation
 
             Write-Host "Updates named value: $($item.id) exists..."
 
-            $baseurl="$($endpointUrl)subscriptions/$($subscriptionId)/resourceGroups/$($ApiMRG)/providers/Microsoft.ApiManagement/service/$($apimIns)"
-                                   
-		    $targeturl="$($baseurl)/namedValues/$($item.id)?api-version=2021-01-01-preview"	
-		
-            try
-            {
-                if($item.secretIdentifier){
-                    Write-Host "Adding named value using keyvault"
-                    $json = @{
-                        properties = [ordered]@{
-                            displayName = $item.displayName
-                            keyVault = @{
-                                secretIdentifier = $item.secretIdentifier
-                                identityClientId = $null
-                            }
-                            tags = $item.tags
-                            secret = $item.secret
-                        }
-                    } | ConvertTo-Json
-
-                }
-                else{
-                    Write-Host "Adding named value using plain"
-                    $json = @{
-                        properties = [ordered]@{
-                            displayName = $item.displayName
-                            value = $item.value
-                            tags = $item.tags
-                            secret = $item.secret
-                        }
-                    } | ConvertTo-Json
-                }
-                Invoke-WebRequest -UseBasicParsing -Uri $targeturl -Body $json -ContentType "application/json" -Headers $headers -Method Put
-                
-                
-            }
-            catch [System.Net.WebException] 
-            {
-                throw
-            }
-	
+            Set-NamedValue -accessToken $accessToken -item $item
             
         }
 
