@@ -54,6 +54,9 @@ Trace-VstsEnteringInvocation $MyInvocation
 
     $accessToken = Get-AccessToken -clientId $clientId -clientSecret $clientSecret
     
+    
+    
+    
     if($MultiInsert){
         Write-Host "Get config..."
 

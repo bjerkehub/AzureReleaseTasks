@@ -43,6 +43,11 @@ function Set-NamedValue{
                                    
     $targeturl="$($baseurl)/namedValues/$($item.id)?api-version=2021-01-01-preview"	
 
+    
+    $headers = @{
+        Authorization = "Bearer $($accessToken)"        
+    }
+
     try
         {
             if($item.secretIdentifier){
