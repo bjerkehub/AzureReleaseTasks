@@ -23,7 +23,7 @@ function Get-AccessToken{
 
         Write-Host "Successfully received access-token"
 
-        return $resp
+        return $resp.access_token
     
     }
     catch [System.Net.WebException] 

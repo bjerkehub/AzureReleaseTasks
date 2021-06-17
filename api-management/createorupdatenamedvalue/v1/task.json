@@ -1,10 +1,10 @@
 {
     "id": "410f040e-6620-4f2b-b3f0-4a79fce24a85",
     "name": "createorupdatenamedvalue",
-    "friendlyName": "API Management - Create/Update Named Value - version 1.0.34",
-    "description": "API Management - Create/Update Named Value - version 1.0.34",
+    "friendlyName": "API Management - Create/Update Named Value - version 1.0.38",
+    "description": "API Management - Create/Update Named Value - version 1.0.38",
     "author": "DevOps Team - Joachim Bjerke",
-    "helpMarkDown": "API Management - Create/Update Named Value - version 1.0.34",
+    "helpMarkDown": "API Management - Create/Update Named Value - version 1.0.38",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "34"
+        "Patch": "38"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update Named Value $(message)",
@@ -82,25 +82,57 @@
             "visibleRule": "MultiInsert=false"
         },
         {
-            "name": "Value",
-            "type": "string",
-            "label": "Value",
-            "defaultValue": "",
-            "required": false,
-            "helpMarkDown": "Value of the named value. Can contain policy expressions. Maximum length is 1000 characters. It may not be empty or consist only of whitespace",
+            "name": "ValueType",
+            "type": "pickList",
+            "label": "Type",
+            "defaultValue": "plain",
+            "required": true,
+            "helpMarkDown": "Use \"Plain\" for custom common values, \"Secret\" for added encryption, or \"Key vault\" to reference your Azure Key Vault secret.",
             "properties": {
-                "EditableOptions": "True"
+                "EditableOptions": "False"
+            },
+            "options": {
+                "plain": "Plain",
+                "secret":"Secret",
+                "keyVault": "KeyVault"
             },
             "visibleRule": "MultiInsert=false"
         },
         {
-            "name": "IsSecret",
-            "type": "boolean",
-            "label": "Secret",
+            "name": "Value",
+            "type": "string",
+            "label": "Value",
             "defaultValue": "",
-            "required": false,
-            "helpMarkDown": "Whether the named value is a secret and its value should be encrypted",
-            "visibleRule": "MultiInsert=false"
+            "required": true,
+            "helpMarkDown": "Value of the named value. Can contain policy expressions. Maximum length is 1000 characters. It may not be empty or consist only of whitespace",
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "visibleRule": "MultiInsert=false && ValueType != keyVault"
+        },
+        {
+            "name": "KeyVaultName",
+            "type": "pickList",
+            "label": "Kay Vault",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select the keyvault you will reference value from",
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "visibleRule": "MultiInsert=false && ValueType = keyVault"
+        },
+        {
+            "name": "KeyVaultSecret",
+            "type": "string",
+            "label": "Kay Vault Secret",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Select Key Vault Secret",
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "visibleRule": "MultiInsert=false && ValueType = keyVault"
         },
         {
             "name": "Tags",
@@ -137,7 +169,14 @@
             "parameters": {
                 "ResourceGroupName": "$(ResourceGroupName)"
             }
+        },
+        {
+            "target": "KeyVaultName",
+            "endpointId": "$(ConnectedSubscription)",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resources?$filter=resourceType eq 'Microsoft.KeyVault/vaults'&api-version=2019-09-01",
+            "resultSelector": "jsonpath:$.value[*].name"
         }
+        
     ],
     "execution": {
         "PowerShell3": {
