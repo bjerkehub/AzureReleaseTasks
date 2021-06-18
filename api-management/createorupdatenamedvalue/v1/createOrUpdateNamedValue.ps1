@@ -30,8 +30,8 @@ Trace-VstsEnteringInvocation $MyInvocation
 
     [string]$Id = Get-VstsInput -Name Id
     [string]$Name = Get-VstsInput -Name Name
+    
     [string]$Value = Get-VstsInput -Name Value
-    [bool]$IsSecret = [System.Convert]::ToBoolean($(Get-VstsInput -Name IsSecret))
     [string]$Tags = Get-VstsInput -Name Tags
     [bool]$MultiInsert = [System.Convert]::ToBoolean($(Get-VstsInput -Name MultiInsert))
     [string]$ConfigFilePath = Get-VstsInput -Name ConfigFilePath
@@ -50,11 +50,8 @@ Trace-VstsEnteringInvocation $MyInvocation
     Write-Host "Reqesting accessToken"
  
     . "$PSScriptRoot\utility.ps1"
-    ##. ".\createorupdatenamedvalue\v1\utility.ps1"
 
     $accessToken = Get-AccessToken -clientId $clientId -clientSecret $clientSecret
-    
-    
     
     
     if($MultiInsert){

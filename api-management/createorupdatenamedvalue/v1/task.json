@@ -112,11 +112,11 @@
         },
         {
             "name": "KeyVaultName",
-            "type": "pickList",
+            "type": "string",
             "label": "Kay Vault",
             "defaultValue": "",
             "required": true,
-            "helpMarkDown": "Select the keyvault you will reference value from",
+            "helpMarkDown": "name of KeyVault to reference secret from",
             "properties": {
                 "EditableOptions": "True"
             },
@@ -169,12 +169,6 @@
             "parameters": {
                 "ResourceGroupName": "$(ResourceGroupName)"
             }
-        },
-        {
-            "target": "KeyVaultName",
-            "endpointId": "$(ConnectedSubscription)",
-            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resources?$filter=resourceType eq 'Microsoft.KeyVault/vaults'&api-version=2019-09-01",
-            "resultSelector": "jsonpath:$.value[*].name"
         }
         
     ],
