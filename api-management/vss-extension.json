@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "api-management-releasetask-automation",
     "name": "Azure API Management Automation Tools",
-    "version": "1.0.100",
+    "version": "1.0.110",
     "publisher": "Statkraft-Joachim-Bjerke",
     "targets": [
         {

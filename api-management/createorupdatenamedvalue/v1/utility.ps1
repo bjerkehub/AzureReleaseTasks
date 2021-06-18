@@ -1,12 +1,19 @@
 
-
-
+$ConnectedSubscription = Get-VstsInput -Name ConnectedSubscription -Require
+$ApiMRG = Get-VstsInput -Name ResourceGroupName -Require 
+$apimIns = Get-VstsInput -Name APIMInstanceName
+$endPoint = Get-VstsEndpoint -Name $ConnectedSubscription -Require
+$endpointUrl = $endPoint.Url
+$subscriptionId = $endPoint.Data.subscriptionId
+$tenantId = $endPoint.Auth.Parameters.TenantId
+$clientId = $endPoint.Auth.Parameters.ServicePrincipalId
+$clientSecret = $endpoint.Auth.Parameters.ServicePrincipalKey
+$Cloud = "https://login.microsoftonline.com"
 
 
 function Get-AccessToken{
     [CmdletBinding()]
-    param($clientId, $clientSecret)
-
+    param()
 
     $body = @{
         resource = "https://management.azure.com"
@@ -51,7 +58,6 @@ function Set-NamedValue{
     try
         {
             if($item.secretIdentifier){
-                Write-Host "Adding named value using keyvault"
                 $json = @{
                     properties = [ordered]@{
                         displayName = $item.displayName
@@ -66,7 +72,6 @@ function Set-NamedValue{
 
             }
             else{
-                Write-Host "Adding named value using plain"
                 $json = @{
                     properties = [ordered]@{
                         displayName = $item.displayName
@@ -76,12 +81,16 @@ function Set-NamedValue{
                     }
                 } | ConvertTo-Json
             }
-            Invoke-WebRequest -UseBasicParsing -Uri $targeturl -Body $json -ContentType "application/json" -Headers $headers -Method Put
+            
+            $resp = Invoke-WebRequest -UseBasicParsing -Uri $targeturl -Body $json -ContentType "application/json" -Headers $headers -Method Put 
+            
             
             
         }
         catch [System.Net.WebException] 
         {
+            $er=$_.ErrorDetails.Message.ToString()|ConvertFrom-Json
+            write-host $er.error.details
             throw
         }
 }
