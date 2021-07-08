@@ -55,6 +55,9 @@ function Set-NamedValue{
         Authorization = "Bearer $($accessToken)"        
     }
 
+    
+    
+
     try
         {
             if($item.secretIdentifier){
@@ -72,14 +75,35 @@ function Set-NamedValue{
 
             }
             else{
-                $json = @{
-                    properties = [ordered]@{
-                        displayName = $item.displayName
-                        value = $item.value
-                        tags = $item.tags
-                        secret = $item.secret
-                    }
-                } | ConvertTo-Json
+                $regex = "\$\(([^\)]+)\)" #check if the string is a variable
+                $match = [regex]::Match($item.value, $regex)
+                if($match.Success){
+                    $var = ($item.value).TrimStart('$').TrimStart('(').TrimEnd(')')
+                    Write-host "Get Variable:" -ForegroundColor Yellow
+                    $varItem = Get-ChildItem "env:$var"
+                    $secretVar = "$($var)"
+                    Write-host "Get secret Variable:" -ForegroundColor Yellow
+                    $secretVar
+                    $json = @{
+                        properties = [ordered]@{
+                            displayName = $item.displayName
+                            value = $varItem.Value
+                            tags = $item.tags
+                            secret = $item.secret
+                        }
+                    } | ConvertTo-Json    
+                }
+                else{
+                    $json = @{
+                        properties = [ordered]@{
+                            displayName = $item.displayName
+                            value = $item.value
+                            tags = $item.tags
+                            secret = $item.secret
+                        }
+                    } | ConvertTo-Json
+                }
+                
             }
             
             $resp = Invoke-WebRequest -UseBasicParsing -Uri $targeturl -Body $json -ContentType "application/json" -Headers $headers -Method Put 

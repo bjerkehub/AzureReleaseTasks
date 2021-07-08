@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "api-management-releasetask-automation",
     "name": "Azure API Management Automation Tools",
-    "version": "1.0.110",
+    "version": "1.0.130",
     "publisher": "Statkraft-Joachim-Bjerke",
     "targets": [
         {
@@ -19,6 +19,9 @@
     "files": [
         {
             "path": "createorupdateapi"
+        },
+        {
+            "path": "createorupdateapioperation"
         },
         {
             "path": "createorupdateproduct"
@@ -50,6 +53,16 @@
             ],
             "properties": {
                 "name": "createorupdateapi"
+            }
+        },
+        {
+            "id": "createorupdateapioperation",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "createorupdateapioperation"
             }
         },
         {

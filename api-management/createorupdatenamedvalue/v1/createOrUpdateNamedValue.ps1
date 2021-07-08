@@ -29,6 +29,8 @@ Trace-VstsEnteringInvocation $MyInvocation
     if($MultiInsert){
         Write-Host "Get config..."
 
+
+
         $jsonArr = Get-Content $ConfigFilePath | ConvertFrom-Json
         
         foreach($item in $jsonArr){

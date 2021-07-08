@@ -1,10 +1,10 @@
 {
     "id": "9049c5b6-8fab-48fe-b432-14930d67b8ea",
     "name": "createorupdateproduct",
-    "friendlyName": "API Management - Create or update product - version 1.0.11",
-    "description": "API Management - Create or update product - version 1.0.11",
+    "friendlyName": "API Management - Create or update product - version 1.0.12",
+    "description": "API Management - Create or update product - version 1.0.12",
     "author": "DevOps Team - Joachim Bjerke",
-    "helpMarkDown": "API Management - Create or update product - version 1.0.11",
+    "helpMarkDown": "API Management - Create or update product - version 1.0.12",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "11"
+        "Patch": "12"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update Product $(message)",

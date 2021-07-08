@@ -1,0 +1,169 @@
+{
+    "id": "35b7b22e-3b55-4c43-8323-2f9abc2d43d9",
+    "name": "createorupdateapioperation",
+    "friendlyName": "API Management - Create/Update API Operation - version 1.0.5",
+    "description": "API Management - Create/Update API Operation - version 1.0.5",
+    "author": "DevOps Team",
+    "helpMarkDown": "API Management - Create/Update API Operation - version 1.0.5",
+    "category": "Utility",
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "demands": [],
+    "version": {
+        "Major": "1",
+        "Minor": "0",
+        "Patch": "5"
+    },
+    "minimumAgentVersion": "1.95.0",
+    "instanceNameFormat": "API Management - Create/Update API Operation $(message)",
+    
+    "inputs": [
+        {
+            "name": "ConnectedSubscription",
+            "type": "connectedService:AzureRM",
+            "label": "Azure Subscription",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "Azure Resource Manager subscription to configure before running PowerShell"
+        },
+        {
+            "name": "ResourceGroupName",
+            "type": "pickList",
+            "label": "Resource Group",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "helpMarkDown": "Enter or Select the Azure Resource group that contains the target APIM Instance."
+        },
+        {
+            "name": "APIMInstanceName",
+            "type": "pickList",
+            "label": "API Management Service Name",
+            "defaultValue": "",
+            "required": true,
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "helpMarkDown": "Select the target APIM Instance."
+        },
+        {
+            "name": "ApiCreatedPrevious",
+            "type": "boolean",      
+            "label": "Api created by previous task",
+            "helpMarkDown": "Make sure the task that creates/updates the API is not disabled and that it is executed by the same agent."
+        }, 
+        {
+            "name": "ApiName",
+            "type": "pickList",
+            "label": "Api Name",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "New or existing API",
+            "properties": {
+                "EditableOptions": "True"
+            },
+            "visibleRule": "ApiCreatedPrevious = false"
+        },
+        {
+            "name": "OperationId",
+            "type": "string",
+            "label": "Operation Id",
+            "defaultValue": "",
+            "required": true,
+            "helpMarkDown": "",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "OperationName",
+            "type": "string",
+            "label": "Operation Display name",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "OperationDescription",
+            "type": "string",
+            "label": "Operation Display description",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "",
+            "properties": {
+                "EditableOptions": "True"
+            }
+        },
+        {
+            "name": "Method",
+            "type": "pickList",
+            "label": "Method",
+            "defaultValue": "get",
+            "required": false,
+            "helpMarkDown": "REST Method",
+            "options": {
+                "get": "GET",
+                "post":"POST",
+                "put":"PUT",
+                "delete":"DELETE",
+                "head":"HEAD",
+                "options":"OPTIONS",
+                "patch": "PATCH",
+                "trace": "TRACE"
+            },
+            "properties": {
+                "EditableOptions": "False"
+              }
+        },
+        {
+            "name": "UrlTemplate",
+            "type": "string",
+            "label": "Url",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": ""
+        }
+    ],
+    "dataSourceBindings": [
+        {
+            "target": "ResourceGroupName",
+            "endpointId": "$(ConnectedSubscription)",
+            "dataSourceName": "AzureResourceGroups"
+        },
+        {
+            "name": "ApimInstances",
+            "target": "APIMInstanceName",
+            "endpointId": "$(ConnectedSubscription)",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service?api-version=2016-07-07",
+            "resultSelector": "jsonpath:$.value[*].name",
+            "parameters": {
+                "ResourceGroupName": "$(ResourceGroupName)"
+            }
+        },
+        {
+            "name": "APIMAPIName",
+            "target": "ApiName",
+            "endpointId": "$(ConnectedSubscription)",
+            "endpointUrl": "{{endpoint.url}}/subscriptions/{{endpoint.subscriptionId}}/resourceGroups/$(ResourceGroupName)/providers/Microsoft.ApiManagement/service/$(APIMInstanceName)/apis?api-version=2019-12-01",
+            "resultSelector": "jsonpath:$.value[*].name",
+            "parameters": {
+                "ResourceGroupName": "$(ResourceGroupName)",
+                "APIMInstanceName": "$(APIMInstanceName)"
+            }
+        }
+    ],
+    "execution": {
+        "PowerShell3": {
+            "target": "$(currentDirectory)\\createOrUpdateApiOperation.ps1",
+            "argumentFormat": "",
+            "workingDirectory": "$(currentDirectory)"
+        }
+    }
+}

@@ -46,6 +46,7 @@ Trace-VstsEnteringInvocation $MyInvocation
     [string]$SwaggerPicker = Get-VstsInput -Name SwaggerPicker 
     [string]$SwaggerFilePath = Get-VstsInput -Name SwaggerFilePath
 	[string]$SwaggerUrl=Get-VstsInput -Name SwaggerUrl
+    [bool]$ShouldImportSwagger = [System.Convert]::ToBoolean($(Get-VstsInput -Name ShouldImportSwagger))
     
     $apiManagementContextParams = @{
         ResourceGroupName = $ApiMRG
@@ -57,42 +58,49 @@ Trace-VstsEnteringInvocation $MyInvocation
     $scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
     
-    $importSwaggerParams = @{
-        Context = $apiManagementContext 
-        Path = $apiURLSuffix 
-        ServiceUrl = $backendUrl 
-        Protocol = "Https" 
-        
+    
+
+    if($ShouldImportSwagger){
+
+        $importSwaggerParams = @{
+            Context = $apiManagementContext 
+            Path = $apiURLSuffix 
+            ServiceUrl = $backendUrl 
+            Protocol = "Https" 
+            
+        }
+
+        switch ($OpenAPISpec) {
+            "v2" { 
+                Write-Host "Setting specificationFormat = Swagger"
+                $importSwaggerParams.SpecificationFormat = "Swagger" 
+            }
+            "v3" { 
+                Write-Host "Setting specificationFormat = OpenApiJson"
+                $importSwaggerParams.SpecificationFormat = "OpenApiJson" 
+            }
+            Default {
+                throw "OpenApi version not set. Suported values is: v2 or v3"
+            }
+        }
+    
+        switch($SwaggerPicker)
+        {
+            "Url"{
+                Write-Host "Import openApi from url: $($SwaggerUrl)"
+                $importSwaggerParams.SpecificationUrl = $SwaggerUrl
+            }
+            "File"{
+                Write-Host "Import openApi from file: $($SwaggerFilePath)"
+                $importSwaggerParams.SpecificationPath = $SwaggerFilePath
+            }
+            Default{
+                throw "OpenApi location not set. Suported values is: Url or Filepath"
+            }
+        }
     }
 
-    switch ($OpenAPISpec) {
-        "v2" { 
-            Write-Host "Setting specificationFormat = Swagger"
-            $importSwaggerParams.SpecificationFormat = "Swagger" 
-        }
-        "v3" { 
-            Write-Host "Setting specificationFormat = OpenApiJson"
-            $importSwaggerParams.SpecificationFormat = "OpenApiJson" 
-        }
-        Default {
-            throw "OpenApi version not set. Suported values is: v2 or v3"
-        }
-    }
-
-    switch($SwaggerPicker)
-    {
-        "Url"{
-            Write-Host "Import openApi from url: $($SwaggerUrl)"
-            $importSwaggerParams.SpecificationUrl = $SwaggerUrl
-        }
-        "File"{
-            Write-Host "Import openApi from file: $($SwaggerFilePath)"
-            $importSwaggerParams.SpecificationPath = $SwaggerFilePath
-        }
-        Default{
-            throw "OpenApi location not set. Suported values is: Url or Filepath"
-        }
-    }
+    
 
     Write-Host "Checking Auth config"
 
@@ -140,8 +148,6 @@ Trace-VstsEnteringInvocation $MyInvocation
             if($existingProduct)
             {
                 Write-Host "Product: '$($product)' exists...continue"
-                # Write-Host "Linking API to product: $($product)"
-                # Add-AzApiManagementApiToProduct -Context $apiManagementContext -ProductId $product -ApiId $ApiName
             }
             else 
             {
@@ -216,16 +222,24 @@ Trace-VstsEnteringInvocation $MyInvocation
         New-AzApiManagementApi @apiParams
     }
     
-    $importSwaggerParams.ApiId = $ApiName
-    $importSwaggerParams.ApiVersionSetId = $versionSetId
-    $importSwaggerParams.ApiVersion = $apiVersion
 
-    Write-Host "Importing API from OpenApi"
-    Import-AzApiManagementApi @importSwaggerParams
-    Write-Host "Set api display name: $($ApiDisplayName)"
-    Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
+    #Get api again, to make sure we have the lates version of the product
+    $api = Get-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName
     
+    # Write-Host ("##vso[task.setvariable variable=NewUpdatedProduct;]$product")
+    Write-Host "Setting apiId: $($api.ApiId) to variable: NewUpdatedApi"
+    Set-VstsTaskVariable -Name "NewUpdatedApi" -Value $api.ApiId
 
+    if($ShouldImportSwagger){
+        $importSwaggerParams.ApiId = $ApiName
+        $importSwaggerParams.ApiVersionSetId = $versionSetId
+        $importSwaggerParams.ApiVersion = $apiVersion
+
+        Write-Host "Importing API from OpenApi"
+        Import-AzApiManagementApi @importSwaggerParams
+        Write-Host "Set api display name: $($ApiDisplayName)"
+        Set-AzApiManagementApi -Context $apiManagementContext -ApiId $ApiName -Name $ApiDisplayName -Description $ApiDescription
+    }
     
     foreach($product in $products)
     {

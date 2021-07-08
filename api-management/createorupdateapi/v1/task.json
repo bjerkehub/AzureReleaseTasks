@@ -1,10 +1,10 @@
 {
     "id": "31fd7168-d542-400b-90b7-84e4eee27c07",
     "name": "createorupdateapi",
-    "friendlyName": "API Management - Create/Update API - version 1.0.29",
-    "description": "API Management - Create/Update API - version 1.0.29",
+    "friendlyName": "API Management - Create/Update API - version 1.0.34",
+    "description": "API Management - Create/Update API - version 1.0.34",
     "author": "DevOps Team",
-    "helpMarkDown": "API Management - Create/Update API - version 1.0.29",
+    "helpMarkDown": "API Management - Create/Update API - version 1.0.34",
     "category": "Utility",
     "visibility": [
         "Build",
@@ -14,7 +14,7 @@
     "version": {
         "Major": "1",
         "Minor": "0",
-        "Patch": "29"
+        "Patch": "34"
     },
     "minimumAgentVersion": "1.95.0",
     "instanceNameFormat": "API Management - Create/Update API $(message)",
@@ -101,6 +101,14 @@
             "helpMarkDown": "Set the URL suffix"
         },
         {
+            "name": "ShouldImportSwagger",
+            "type": "boolean",
+            "label": "Import swagger / openApi?",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": ""
+        },
+        {
             "name": "OpenAPISpec",
             "type": "pickList",
             "label": "OpenApi Version",
@@ -113,7 +121,8 @@
             },
             "properties": {
               "EditableOptions": "False"
-            }
+            },
+            "visibleRule": "ShouldImportSwagger = true"
         },
         {
             "name": "SwaggerPicker",
@@ -128,7 +137,8 @@
             },
             "properties": {
               "EditableOptions": "True"
-            }
+            },
+            "visibleRule": "ShouldImportSwagger = true"
         },    
         {
             "name": "SwaggerUrl",
@@ -137,7 +147,7 @@
             "required": true,
             "helpMarkDown": "Make sure the URL is connectable from the build servers",
             "defaultValue": "",
-            "visibleRule": "SwaggerPicker=Url"
+            "visibleRule": "SwaggerPicker=Url && ShouldImportSwagger = true"
         },
         {
             "name": "SwaggerFilePath",
@@ -146,7 +156,7 @@
             "required": true,
             "helpMarkDown": "API Definition file path. For instance $(System.DefaultWorkingDirectory)/<openApi.json>",
             "defaultValue": "",
-            "visibleRule": "SwaggerPicker=File"
+            "visibleRule": "SwaggerPicker=File && ShouldImportSwagger = true"
         },
         {
             "name": "IsSubscriptionRequired",
